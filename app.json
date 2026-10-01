@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Leadgen",
+    "slug": "leadgen",
+    "version": "1.0.0",
+    "scheme": "leadgen",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "color": "#111827"
+        }
+      ]
+    ],
+    "android": {
+      "package": "com.leadgen.app"
+    },
+    "ios": {
+      "bundleIdentifier": "com.leadgen.app"
+    }
+  }
+}
