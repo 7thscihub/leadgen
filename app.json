@@ -13,13 +13,21 @@
         {
           "color": "#111827"
         }
-      ]
+      ],
+      "expo-sharing",
+      "expo-sqlite"
     ],
     "android": {
       "package": "com.leadgen.app"
     },
     "ios": {
       "bundleIdentifier": "com.leadgen.app"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b7e7f97c-f8f8-4a29-ad7b-620289402356"
+      }
     }
   }
 }
