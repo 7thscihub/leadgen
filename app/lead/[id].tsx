@@ -13,6 +13,7 @@ export default function LeadDetails() {
 
     const load = useCallback(() => {
         if (id) getLead(id).then(setLead).catch(console.warn);
+    
     }, [id]);
 
     useFocusEffect(useCallback(() => { load(); }, [load]));
@@ -49,12 +50,9 @@ export default function LeadDetails() {
         ])
 
     };
-
+    
     return (
         <ScrollView contentContainerStyle={styles.container}>
-            <Pressable onPress={() => router.back()} style={styles.back}>
-                <Ionicons name="arrow-back" size={22} />
-            </Pressable>
             <View style={styles.hero}>
                  <View style={styles.avatar}>
                     <Text style={styles.title}>{lead.name || lead.phoneNumber}</Text> 
@@ -63,8 +61,11 @@ export default function LeadDetails() {
                         <Text style={styles.statusText}>{lead.status}</Text>
                     </View>
                 </View>
+                <Pressable onPress={() => router.navigate('/')} style={styles.back}>
+                    {/* <Ionicons name="cancel" size={22} /> */}
+                    <Text style={styles.cancel}>x</Text>
+                </Pressable>
             </View>
-
             <View style={styles.actions}>
                 <Action icon="call-outline" label="Call" onPress={call} />
                 <Action icon="logo-whatsapp" label="WhatsApp" onPress={whatsapp} />
@@ -74,12 +75,19 @@ export default function LeadDetails() {
 
             <View style={styles.card}>
                 <Field label="Date to call" value={formatNairobiDate(lead.dateToCall)} />
-                <Field label="Location" value={lead.location} />
+                <Field label="ID No" value={lead.idNumber} />
                 <Field label="Package" value={lead.package} />
-                <Field label="Estate" value={lead.estateName} />
-                <Field label="Apartment" value={lead.apartmentName} />
+                <Field label="Location" value={lead.location} />
+                {lead.estateName?.trim() ? (
+                    <Field label="Estate" value={lead.estateName.trim()} />
+                ) : null}
+                {lead.apartmentName?.trim() ? (
+                    <Field label="Apartment" value={lead.apartmentName.trim()} />
+                ) : null}
+                {!lead.estateName?.trim() && !lead.apartmentName?.trim() && (
+                    <Field label="Own compound" hideValue />
+                )}
                 <Field label="Created" value={formatNairobiDate(lead.createdAt)} />
-                <Field label="Updated" value={formatNairobiDate(lead.updatedAt)} />
             </View>
 
             <Pressable onPress={remove} style={styles.delete}>
@@ -100,25 +108,55 @@ function Action({ icon, label, onPress }: { icon: any; label: string; onPress: (
 }
 
 
-function Field({ label, value }: { label: string; value?: string }) {
+function Field({
+    label,
+    value,
+    hideValue,
+}: {
+    label: string;
+    value?: string;
+    hideValue?: boolean;
+}) {
     return ( 
         <View style={styles.field}>
             <Text style={styles.label}>{label}</Text>
-            <Text style={styles.value}>{value || "—"}</Text>
+            {!hideValue && (
+                <Text style={styles.value}>{value || "—"}</Text>
+            )}
         </View>
-    )
+    );
 }
 
 
 const styles = StyleSheet.create({
-    container: { padding: 20, paddingTop: 58, backgroundColor: "#F8FAFC", minHeight: "100%" },
-    center: { flex: 1, alignItems: "center", justifyContent: "center" },
-    back: { width: 42, height: 42, borderRadius: 14, backgroundColor: "#fff", borderWidth: 1, borderColor: "#E2E8F0", alignItems: "center", justifyContent: "center" },
+    container: { 
+        padding: 20, 
+        paddingTop: 58, 
+        backgroundColor: "#F8FAFC", 
+        minHeight: "100%" 
+    },
+    center: { 
+        flex: 1, 
+        alignItems: "center", 
+        justifyContent: "center" 
+    },
+    back: { 
+        width: 42, 
+        height: 42, 
+        borderRadius: 14, 
+        backgroundColor: "#fff", 
+        borderWidth: 1, 
+        borderColor: "#E2E8F0", 
+        alignItems: "center", 
+        justifyContent: "center" 
+    },
     hero: {
         display: "flex",
-        flexdirection: "row", 
+        flexDirection: "row",
+        justifyContent: "space-between",
         // alignItems: "center", 
-        paddingVertical: 25 
+        paddingVertical: 25,
+        paddingHorizontal: 10
     },
     avatar: { 
         borderRadius: 22,
@@ -143,23 +181,34 @@ const styles = StyleSheet.create({
         color: "#4F46E5" 
     },
     title: { 
-        fontSize: 25, 
+        fontSize: 20, 
         fontWeight: "800", 
         color: "#0F172A", 
         marginTop: 0,
         textTransform: "capitalize"
     },
-    phone: { color: "#64748B", marginTop: 5, fontSize: 20 },
+    phone: { 
+        color: "#64748B", 
+        marginTop: 5, 
+        fontSize: 20,
+        color: "white",
+        backgroundColor: "black",
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+        // color: "green"
+    },
     status: { 
         flexDirection: "row",
         alignItems: "center",
         // marginTop: 10, 
-        backgroundColor: "#E2E8F0", 
-        paddingHorizontal: 12, 
-        paddingVertical: 6, 
-        borderRadius: 12,
-        gap: 20 
-
+        // backgroundColor: "#E2E8F0", 
+        // paddingHorizontal: 12, 
+        // paddingVertical: 6, 
+        // borderRadius: 12,
+        gap: 20, 
+        // backgroundColor: "#EEF2FF",
+        // backgroundColor: "#EEF2FF",
     },
     statusText: {
         color: "#334155", 
@@ -170,10 +219,24 @@ const styles = StyleSheet.create({
     actions: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
     action: { flex: 1, minWidth: "22%", height: 70, backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: "#E2E8F0", alignItems: "center", justifyContent: "center", gap: 5 },
     actionText: { fontSize: 11, fontWeight: "700", color: "#334155" },
-    card: { marginTop: 14, backgroundColor: "#fff", borderRadius: 18, borderWidth: 1, borderColor: "#E2E8F0", padding: 16 },
+    card: { 
+        marginTop: 14, 
+        backgroundColor: "#fff", 
+        borderRadius: 18, 
+        borderWidth: 1, 
+        borderColor: "#E2E8F0", 
+        padding: 16,
+        paddingBottom: 28 
+    },
     field: { paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
     label: { fontSize: 11, color: "#94A3B8", fontWeight: "700" },
     value: { color: "#0F172A", marginTop: 3, fontSize: 15 },
     delete: { alignItems: "center", padding: 25 },
-    deleteText: { color: "#DC2626", fontWeight: "800" }
+    deleteText: { color: "#DC2626", fontWeight: "800" },
+    cancel: {
+        fontSize: 20,
+        color: "red",
+        fontWeight: 400,
+        textTransform: "capitalize"
+    }
 });

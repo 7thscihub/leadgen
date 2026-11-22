@@ -1,6 +1,6 @@
 export type LeadStatus = "pending" | "sold" | "reversed" | "abandoned";
 export type FollowUpState = "overdue" | "due_today" | "upcoming";
-
+export type Residency = "apartment" | "estate" | "ownCompound"
 
 export type Lead = {
     id: string;
@@ -8,8 +8,10 @@ export type Lead = {
     dateToCall: string;
     status: LeadStatus;
     name?: string;
-    location?: string;
+    idNumber?: string;
     package?: string;
+    location?: string;
+    residency?: Residency;
     estateName?: string;
     apartmentName?: string;
     submissionId?: string;
@@ -21,6 +23,7 @@ export type Lead = {
 export type LeadInput = Pick<Lead, 
     | "phoneNumber" 
     | "name" 
+    | "idNumber"
     | "dateToCall" 
     | "location" 
     | "package" 

@@ -29,7 +29,9 @@ export default function AddLead() {
                 title="Add lead" 
                 initial={{ 
                     phoneNumber: "", 
-                    name: "", dateToCall: todayNairobi(), 
+                    name: "", 
+                    idNumber: "",
+                    dateToCall: todayNairobi(), 
                     location: "", 
                     package: "", 
                     estateName: "", 

@@ -15,7 +15,8 @@
         }
       ],
       "expo-sharing",
-      "expo-sqlite"
+      "expo-sqlite",
+      "@react-native-community/datetimepicker"
     ],
     "android": {
       "package": "com.leadgen.app"

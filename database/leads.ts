@@ -2,48 +2,66 @@ import { db } from "./db";
 import { Lead, LeadStatus } from "@/types/lead";
 
 export async function insertLead(lead: Lead) {
-  const database = await db();
-  await database.runAsync(
-    `INSERT INTO leads
-      (id, phoneNumber, dateToCall, status, name, location, package, estateName, apartmentName, submissionId, createdAt, updatedAt)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    lead.id, lead.phoneNumber, lead.dateToCall, lead.status, lead.name ?? null, lead.location ?? null,
-    lead.package ?? null, lead.estateName ?? null, lead.apartmentName ?? null, lead.submissionId ?? null,
-    lead.createdAt, lead.updatedAt
-  );
+    const database = await db();
+    await database.runAsync(
+        `INSERT INTO leads (
+            id, 
+            phoneNumber, 
+            dateToCall, 
+            status, 
+            name, 
+            idNumber,
+            location, 
+            package, 
+            estateName, 
+            apartmentName, 
+            submissionId, 
+            createdAt, 
+            updatedAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        lead.id, lead.phoneNumber, lead.dateToCall, lead.status, lead.name ?? null, 
+        lead.idNumber ? lead.idNumber.trim() : null, lead.location ?? null, lead.package ?? null, lead.estateName ?? null, 
+        lead.apartmentName ?? null, lead.submissionId ?? null, lead.createdAt, lead.updatedAt
+    );
 }
 
 export async function selectLead(id: string) {
-  const database = await db();
-  return database.getFirstAsync<Lead>("SELECT * FROM leads WHERE id = ?", id);
+    const database = await db();
+    return database.getFirstAsync<Lead>("SELECT * FROM leads WHERE id = ?", id);
 }
 
 export async function selectLeads(status: LeadStatus, query = "") {
-  const database = await db();
-  const q = `%${query.trim()}%`;
-  if (status !== "pending") {
+    const database = await db();
+    const q = `%${query.trim()}%`;
+    if (status !== "pending") {
+        return database.getAllAsync<Lead>(
+            `SELECT * FROM leads WHERE status = ? AND (name LIKE ? OR phoneNumber LIKE ?) ORDER BY dateToCall DESC`,
+            status, q, q
+        );
+    }
     return database.getAllAsync<Lead>(
-      `SELECT * FROM leads WHERE status = ? AND (name LIKE ? OR phoneNumber LIKE ?) ORDER BY dateToCall DESC`,
-      status, q, q
+        `SELECT * FROM leads
+        WHERE status = ? AND (name LIKE ? OR phoneNumber LIKE ?)
+        ORDER BY
+        CASE WHEN dateToCall < date('now','+3 hours') THEN 0
+                WHEN dateToCall = date('now','+3 hours') THEN 1 ELSE 2 END,
+        CASE WHEN dateToCall < date('now','+3 hours') THEN dateToCall END ASC,
+        CASE WHEN dateToCall > date('now','+3 hours') THEN dateToCall END ASC`,
+        status, q, q
     );
-  }
-  return database.getAllAsync<Lead>(
-    `SELECT * FROM leads
-     WHERE status = ? AND (name LIKE ? OR phoneNumber LIKE ?)
-     ORDER BY
-       CASE WHEN dateToCall < date('now','+3 hours') THEN 0
-            WHEN dateToCall = date('now','+3 hours') THEN 1 ELSE 2 END,
-       CASE WHEN dateToCall < date('now','+3 hours') THEN dateToCall END ASC,
-       CASE WHEN dateToCall > date('now','+3 hours') THEN dateToCall END ASC`,
-    status, q, q
-  );
 }
 
 export async function updateLeadRow(id: string, lead: Partial<Lead>) {
   const database = await db();
   const fields = Object.keys(lead).filter((key) => key !== "id");
   if (!fields.length) return;
-  const values = fields.map((key) => (lead as any)[key] ?? null);
+  const values = fields.map((key) => {
+    const val = (lead as any)[key];
+    if (key === "idNumber" || key === "submissionId") {
+      return (typeof val === "string" && !val.trim()) ? null : (val ?? null);
+    }
+    return val ?? null;
+  });
   await database.runAsync(
     `UPDATE leads SET ${fields.map((f) => `${f} = ?`).join(", ")} WHERE id = ?`,
     ...values, id

@@ -9,6 +9,7 @@ export async function db() {
     PRAGMA journal_mode = WAL;
     CREATE TABLE IF NOT EXISTS leads (
       id TEXT PRIMARY KEY NOT NULL,
+      idNumber TEXT UNIQUE,
       phoneNumber TEXT NOT NULL,
       dateToCall TEXT NOT NULL,
       status TEXT NOT NULL,

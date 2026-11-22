@@ -22,6 +22,8 @@ export default function EditLead() {
             </View>
         )
     }
+    
+    const exitRoute = `/lead/${lead.id}`
 
     const saveLead = async(data) => {
         try {
@@ -40,6 +42,7 @@ export default function EditLead() {
             initial={lead} 
             status={lead.status} 
             onSave={saveLead}
+            exitRoute={exitRoute}
         />
     );
 }

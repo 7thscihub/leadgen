@@ -127,13 +127,37 @@ const styles = StyleSheet.create({
     eyebrow: { fontSize: 11, fontWeight: "800", letterSpacing: 2, color: "#64748B" },
     title: { fontSize: 30, fontWeight: "800", color: "#0F172A", marginTop: 2 },
     iconButton: { width: 44, height: 44, borderRadius: 14, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#E2E8F0" },
-    search: { margin: 20, marginBottom: 10, height: 48, borderRadius: 14, backgroundColor: "#fff", borderWidth: 1, borderColor: "#E2E8F0", flexDirection: "row", alignItems: "center", paddingHorizontal: 14 },
+    search: { 
+        margin: 20, 
+        marginBottom: 10, 
+        height: 48, 
+        borderRadius: 30, 
+        backgroundColor: "#fff", 
+        borderWidth: 1, 
+        borderColor: "#E2E8F0", 
+        flexDirection: "row", 
+        alignItems: "center", 
+        paddingHorizontal: 14 
+    },
     searchInput: { flex: 1, marginLeft: 9, color: "#0F172A", fontSize: 15 },
-    filters: { paddingHorizontal: 20, gap: 8, paddingBottom: 14 },
-    filter: { paddingHorizontal: 15, height: 36, borderRadius: 18, backgroundColor: "#fff", borderWidth: 1, borderColor: "#E2E8F0", justifyContent: "center" },
-    filterActive: { backgroundColor: "#111827", borderColor: "#111827" },
+    filters: { paddingHorizontal: 20, gap: 12, paddingBottom: 14 },
+    filter: { 
+        paddingHorizontal: 5, 
+        height: 36, 
+        // borderRadius: 18, 
+        // backgroundColor: "#fff", 
+        // borderWidth: 1, 
+        borderColor: "#E2E8F0", 
+        justifyContent: "center" 
+    },
+    filterActive: { 
+        borderBottomWidth: 2,
+        color: "black",
+        // backgroundColor: "#111827", 
+        borderColor: "#111827" 
+    },
     filterText: { color: "#64748B", fontWeight: "700", fontSize: 13 },
-    filterTextActive: { color: "#fff" },
+    filterTextActive: { color: "black" },
     list: { padding: 20, paddingTop: 4, paddingBottom: 110, gap: 8 },
     row: { minHeight: 72, backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: "#E2E8F0", padding: 13, flexDirection: "row", alignItems: "center" },
     avatar: { width: 44, height: 44, borderRadius: 13, backgroundColor: "#EEF2FF", alignItems: "center", justifyContent: "center" },
@@ -147,6 +171,18 @@ const styles = StyleSheet.create({
     empty: { alignItems: "center", paddingTop: 80, paddingHorizontal: 30 },
     emptyTitle: { fontSize: 14, fontWeight: "400", color: "#0F172A" },
     emptyText: { textAlign: "center", color: "#64748B", marginTop: 8, lineHeight: 20 },
-    add: { position: "absolute", right: 20, bottom: 24, height: 54, borderRadius: 18, paddingHorizontal: 20, backgroundColor: "#111827", flexDirection: "row", alignItems: "center", gap: 7, elevation: 4 },
+    add: { 
+        position: "absolute", 
+        right: 20, 
+        bottom: 24, 
+        height: 54, 
+        borderRadius: 30, 
+        paddingHorizontal: 20, 
+        backgroundColor: "#111827", 
+        flexDirection: "row", 
+        alignItems: "center", 
+        gap: 7, 
+        elevation: 4 
+    },
     addText: { color: "#fff", fontWeight: "800", fontSize: 14 }
 });
