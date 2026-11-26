@@ -12,8 +12,8 @@ import {
 import { useRouter, Href } from "expo-router";
 import { LeadStatus } from "@/types/lead";
 import LeadFormInputs, {
-    ResidenceType,
-    FormData,
+    type ResidenceType,
+    type FormData,
 } from "@/components/LeadFormInputs";
 
 export type { FormData };
@@ -39,7 +39,11 @@ export function LeadForm({
         phoneNumber: initial?.phoneNumber ?? "",
         name: initial?.name ?? "",
         idNumber: initial?.idNumber ?? "",
-        dateToCall: initial?.dateToCall ?? "",
+        dateToCall: initial?.dateToCall
+            ? /^\d{4}-\d{2}-\d{2}$/.test(initial.dateToCall)
+                ? `${initial.dateToCall}T09:00`
+                : initial.dateToCall
+            : "",
         location: initial?.location ?? "",
         package: initial?.package ?? "",
         estateName: initial?.estateName ?? "",
@@ -80,9 +84,16 @@ export function LeadForm({
             return Alert.alert("Date to call required");
         }
 
-        await onSave({ ...form, status: currentStatus });
-
-        router.navigate("/");
+        try {
+            await onSave({ ...form, status: currentStatus });
+            if (exitRoute) {
+                router.navigate(exitRoute);
+            } else {
+                router.navigate("/");
+            }
+        } catch {
+            // Stay on form if saving failed
+        }
     };
 
     // Exit form
@@ -111,7 +122,7 @@ export function LeadForm({
                 {/* Status */}
                 {title !== "Add lead" && (
                     <View style={styles.statusBox}>
-                        <Text style={styles.label}>Status</Text>
+                        <Text style={[styles.label, styles.statusTitle]}>Status</Text>
 
                         <View style={styles.statuses}>
                             {(
@@ -184,7 +195,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        marginBottom: 28,
+        marginBottom: 20,
     },
 
     cancel: {
@@ -195,7 +206,7 @@ const styles = StyleSheet.create({
     },
 
     title: {
-        fontSize: 20,
+        fontSize: 16,
         fontWeight: "800",
         color: "black",
         // backgroundColor: "#111827",
@@ -211,6 +222,7 @@ const styles = StyleSheet.create({
     },
 
     // Status
+    statusTitle: {marginLeft: 15 },
     statusBox: {
         marginBottom: 20,
     },
@@ -240,6 +252,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: "700",
         textTransform: "capitalize",
+
     },
 
     statusTextActive: {

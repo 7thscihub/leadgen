@@ -144,9 +144,9 @@ const styles = StyleSheet.create({
     },
 
     input: {
-        height: 35,
+        height: 50,
         borderBottomWidth: 1,
-        borderBottomColor: "gray",
+        borderBottomColor: "#E2E8F0",
         paddingHorizontal: 5,
         color: "#0F172A",
         fontSize: 15,
@@ -155,7 +155,6 @@ const styles = StyleSheet.create({
 
     inputFocused: {
         outlineWidth: 0,
-        outlineStyle: "none",
         borderWidth: 0,
         borderColor: "transparent",
         borderBottomColor: "black",

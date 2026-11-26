@@ -1,70 +1,64 @@
-import React 
-import { updateLead } from "@/services/leads"
+import { useState } from "react";
+import { Pressable, StyleSheet, Text } from "react-native";
+import { updateLead } from "@/services/leads";
+import type { Lead, LeadStatus } from "@/types/lead";
 
+type StatusButtonProps = {
+    lead: Lead;
+    buttonStatus: LeadStatus;
+};
 
-export default Function StatusButton({ lead, buttonStatus }){
-    const [ currentStatus, setCurrentStatus ] = React.useState(staus)
-    const []
+export default function StatusButton({
+    lead,
+    buttonStatus,
+}: StatusButtonProps) {
+    const [currentStatus, setCurrentStatus] = useState(lead.status);
+
     const handlePress = async () => {
-    
-        lead.status = buttonStatus
-        await updateLead(id=lead.id, chages=lead)
-    }
+        await updateLead(lead.id, { status: buttonStatus });
+        setCurrentStatus(buttonStatus);
+    };
 
     return (
-        <Pressable 
-            key={s} 
-            onPress={handlePress} 
-            style={[styles.status, currentStatus === s && styles.statusActive]}>
-            <Text style={[styles.statusText, currentStatus === s && styles.statusTextActive]}>{s}</Text>
+        <Pressable
+            onPress={handlePress}
+            style={[
+                styles.status,
+                currentStatus === buttonStatus && styles.statusActive,
+            ]}
+        >
+            <Text
+                style={[
+                    styles.statusText,
+                    currentStatus === buttonStatus && styles.statusTextActive,
+                ]}
+            >
+                {buttonStatus}
+            </Text>
         </Pressable>
-    )
+    );
 }
 
-
 const styles = StyleSheet.create({
-    statusBox: { 
-        marginBottom: 20 
+    status: {
+        paddingHorizontal: 12,
+        paddingVertical: 9,
+        borderRadius: 12,
+        backgroundColor: "#fff",
+        borderWidth: 1,
+        borderColor: "#E2E8F0",
     },
-    statuses: { 
-        flexDirection: "row", 
-        flexWrap: "wrap", 
-        gap: 7 
+    statusActive: {
+        backgroundColor: "#111827",
+        borderColor: "#111827",
     },
-    status: { 
-        paddingHorizontal: 12, 
-        paddingVertical: 9, 
-        borderRadius: 12, 
-        backgroundColor: "#fff", 
-        borderWidth: 1, 
-        borderColor: "#E2E8F0" 
+    statusText: {
+        color: "#64748B",
+        fontSize: 12,
+        fontWeight: "700",
+        textTransform: "capitalize",
     },
-    statusActive: { 
-        backgroundColor: "#111827", 
-        borderColor: "#111827" 
+    statusTextActive: {
+        color: "#fff",
     },
-    statusText: { 
-        color: "#64748B", 
-        fontSize: 12, 
-        fontWeight: "700", 
-        textTransform: "capitalize" 
-    },
-    statusTextActive: { 
-        color: "#fff" 
-    },
-    save: { 
-        height: 52, 
-        borderRadius: 15, 
-        backgroundColor: "#111827", 
-        alignItems: "center", 
-        justifyContent: "center", 
-        marginTop: 8 
-    },
-    saveText: { 
-        color: "#fff", 
-        fontWeight: "800", 
-        fontSize: 15 
-    }
 });
-
-

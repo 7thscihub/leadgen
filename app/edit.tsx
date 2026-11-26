@@ -25,14 +25,14 @@ export default function EditLead() {
     
     const exitRoute = `/lead/${lead.id}`
 
-    const saveLead = async(data) => {
+    const saveLead = async(data: any) => {
         try {
             await updateLead(lead.id, data);
-            router.navigate(`/lead/${lead.id}`);
         } catch (e) {
             Alert.alert(
                 "Could not save", e instanceof Error ? e.message : "Try again."
             );
+            throw e;
         }
     }
 

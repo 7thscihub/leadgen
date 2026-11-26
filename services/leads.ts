@@ -1,4 +1,4 @@
-import { insertLead, markSubmissionReceived, removeLead, selectLead, selectLeads, submissionReceived, updateLeadRow } from "@/database/leads";
+import { insertLead, markSubmissionReceived, removeLead, selectLead, selectLeads, selectLeadCounts, submissionReceived, updateLeadRow } from "@/database/leads";
 import { Lead, LeadStatus, LeadInput } from "@/types/lead";
 import { scheduleLeadReminders, cancelLeadReminders } from "./notifications";
 import { todayNairobi } from "@/utils/date";
@@ -33,6 +33,7 @@ export async function createLead(input: LeadInput) {
 
 export async function getLead(id: string) { return selectLead(id); }
 export async function getLeads(status: LeadStatus, query = "") { return selectLeads(status, query); }
+export async function getLeadCounts(query = "") { return selectLeadCounts(query); }
 
 export async function updateLead(id: string, changes: Partial<Lead>) {
     const current = await selectLead(id);
@@ -59,8 +60,12 @@ export async function deleteLead(id: string) {
 }
 
 async function reconcileLead(lead: Lead) {
-    if (lead.status === "pending") await scheduleLeadReminders(lead);
-    else await cancelLeadReminders(lead.id);
+    try {
+        if (lead.status === "pending") await scheduleLeadReminders(lead);
+        else await cancelLeadReminders(lead.id);
+    } catch (err) {
+        console.warn("Failed to reconcile lead reminders:", lead.id, err);
+    }
 }
 
 export async function importPublicLead(input: LeadInput & { submissionId: string }) {

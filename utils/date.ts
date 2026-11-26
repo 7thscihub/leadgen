@@ -8,13 +8,23 @@ export function todayNairobi(): string {
 
 export function followUpState(date: string): FollowUpState {
   const today = todayNairobi();
-  if (date < today) return "overdue";
-  if (date === today) return "due_today";
+  const dateOnly = date.slice(0, 10);
+  if (dateOnly < today) return "overdue";
+  if (dateOnly === today) return "due_today";
   return "upcoming";
 }
 
 export function formatNairobiDate(value?: string) {
   if (!value) return "—";
-  const date = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00:00+03:00`) : new Date(value);
-  return new Intl.DateTimeFormat("en-KE", { dateStyle: "medium", timeZone: "Africa/Nairobi" }).format(date);
+  const hasTime = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value);
+  const date = hasTime
+    ? new Date(`${value}:00+03:00`)
+    : /^\d{4}-\d{2}-\d{2}$/.test(value)
+      ? new Date(`${value}T00:00:00+03:00`)
+      : new Date(value);
+  return new Intl.DateTimeFormat("en-KE", {
+    dateStyle: "medium",
+    ...(hasTime ? { timeStyle: "short" as const } : {}),
+    timeZone: "Africa/Nairobi",
+  }).format(date);
 }

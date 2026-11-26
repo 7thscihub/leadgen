@@ -6,8 +6,10 @@
     "scheme": "leadgen",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "icon": "assets/icons/leadgenForeground.png",
     "plugins": [
       "expo-router",
+      "expo-dev-client",
       [
         "expo-notifications",
         {
@@ -16,10 +18,18 @@
       ],
       "expo-sharing",
       "expo-sqlite",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-web-browser"
     ],
     "android": {
-      "package": "com.leadgen.app"
+      "package": "com.leadgen.app",
+      "icon": "./assets/icons/leadgenForeground.png",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icons/leadgenForeground.png",
+        "backgroundColor": "#FFFFFF",
+        "backgroundImage": "./assets/icons/LeadgenAdaptiveBackground.png",
+        "monochromeImage": "./assets/icons/leadgenForeground.png"
+      }
     },
     "ios": {
       "bundleIdentifier": "com.leadgen.app"

@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, TextInput, View,} from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Lead } from "@/types/lead";
-import { Residence, ResidenceType, ResidenceProps } from "./Residence";
+import type { Lead } from "@/types/lead";
+import { Residence, type ResidenceProps, type ResidenceType } from "./Residence";
 
-export { Residence, ResidenceType, type ResidenceProps };
+export { Residence, type ResidenceProps, type ResidenceType };
 
 export type FormData = Pick<
     Lead,
@@ -18,10 +18,12 @@ export type FormData = Pick<
     | "apartmentName"
 >;
 
+
 export type InputProps = {
     label: string;
     value?: string;
 } & React.ComponentProps<typeof TextInput>;
+
 
 export type DateInputProps = {
     label?: string;
@@ -35,6 +37,7 @@ export type LeadFormInputsProps = {
     residenceType: ResidenceType;
     onSelectResidence: (type: ResidenceType) => void;
 };
+
 
 // Reusable text input
 export function Input({
@@ -63,6 +66,7 @@ export function Input({
     );
 }
 
+
 // Reusable date picker input
 export function DateInput({
     label = "Date to call *",
@@ -70,24 +74,31 @@ export function DateInput({
     onChangeDate,
 }: DateInputProps) {
     const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showTimePicker, setShowTimePicker] = useState(false);
+    const [dateText, setDateText] = useState(value?.slice(0, 10) ?? "");
 
-    // Parse date string safely
     const parseDate = (val: string): Date => {
-        const match = val?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        const match = val?.match(
+            /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?$/
+        );
 
         if (match) {
-            const [, year, month, day] = match;
+            const [, year, month, day, hour = "09", minute = "00"] = match;
 
             const date = new Date(
                 Number(year),
                 Number(month) - 1,
-                Number(day)
+                Number(day),
+                Number(hour),
+                Number(minute)
             );
 
             if (
                 date.getFullYear() === Number(year) &&
                 date.getMonth() === Number(month) - 1 &&
-                date.getDate() === Number(day)
+                date.getDate() === Number(day) &&
+                date.getHours() === Number(hour) &&
+                date.getMinutes() === Number(minute)
             ) {
                 return date;
             }
@@ -96,7 +107,6 @@ export function DateInput({
         return new Date();
     };
 
-    // Format date as YYYY-MM-DD
     const formatDate = (date: Date) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -105,30 +115,68 @@ export function DateInput({
         return `${year}-${month}-${day}`;
     };
 
+    const formatTime = (date: Date) =>
+        `${String(date.getHours()).padStart(2, "0")}:${String(
+            date.getMinutes()
+        ).padStart(2, "0")}`;
+
+    const saveDateTime = (date: Date) =>
+        onChangeDate(`${formatDate(date)}T${formatTime(date)}`);
+
+    const selectedDate = parseDate(value);
+
+    useEffect(() => {
+        if (/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2})?$/.test(value)) {
+            setDateText(value.slice(0, 10));
+        }
+    }, [value]);
+
     return (
         <View style={styles.inputBox}>
             <Text style={styles.label}>{label}</Text>
 
             <View style={styles.dateRow}>
                 <TextInput
-                    value={value ?? ""}
-                    onChangeText={onChangeDate}
+                    value={dateText}
+                    onChangeText={(dateValue) => {
+                        setDateText(dateValue);
+                        if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+                            const date = parseDate(
+                                `${dateValue}T${formatTime(selectedDate)}`
+                            );
+                            if (formatDate(date) === dateValue) {
+                                saveDateTime(date);
+                            }
+                        }
+                    }}
                     placeholder="YYYY-MM-DD"
                     placeholderTextColor="#94A3B8"
                     style={styles.dateInput}
                 />
 
                 <Pressable
-                    onPress={() => setShowDatePicker(!showDatePicker)}
+                    onPress={() => {
+                        setShowTimePicker(false);
+                        setShowDatePicker(!showDatePicker);
+                    }}
                     style={styles.calendarButton}
                 >
                     <Text style={styles.calendarIcon}>▦</Text>
+                </Pressable>
+                <Pressable
+                    onPress={() => {
+                        setShowDatePicker(false);
+                        setShowTimePicker(!showTimePicker);
+                    }}
+                    style={styles.timeButton}
+                >
+                    <Text style={styles.timeText}>{formatTime(selectedDate)}</Text>
                 </Pressable>
             </View>
 
             {showDatePicker && (
                 <DateTimePicker
-                    value={parseDate(value)}
+                    value={selectedDate}
                     mode="date"
                     display={
                         Platform.OS === "ios"
@@ -136,10 +184,43 @@ export function DateInput({
                             : "default"
                     }
                     onChange={(_, selectedDate) => {
-                        setShowDatePicker(false);
+                        if (Platform.OS !== "ios") {
+                            setShowDatePicker(false);
+                        }
 
                         if (selectedDate) {
-                            onChangeDate(formatDate(selectedDate));
+                            const updatedDate = new Date(selectedDate);
+                            updatedDate.setHours(
+                                parseDate(value).getHours(),
+                                parseDate(value).getMinutes(),
+                                0,
+                                0
+                            );
+                            saveDateTime(updatedDate);
+                        }
+                    }}
+                />
+            )}
+
+            {showTimePicker && (
+                <DateTimePicker
+                    value={selectedDate}
+                    mode="time"
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    onChange={(_, selectedTime) => {
+                        if (Platform.OS !== "ios") {
+                            setShowTimePicker(false);
+                        }
+
+                        if (selectedTime) {
+                            const updatedDate = new Date(selectedDate);
+                            updatedDate.setHours(
+                                selectedTime.getHours(),
+                                selectedTime.getMinutes(),
+                                0,
+                                0
+                            );
+                            saveDateTime(updatedDate);
                         }
                     }}
                 />
@@ -156,7 +237,7 @@ export function LeadFormInputs({
     onSelectResidence,
 }: LeadFormInputsProps) {
     return (
-        <View style={styles.inputsWrapper}>
+        <View>
             {/* Personal information */}
             <Input
                 label="Phone number *"
@@ -178,7 +259,7 @@ export function LeadFormInputs({
             />
 
             <Input
-                label="Package"
+                label="Package/issue"
                 value={form.package}
                 onChangeText={(v) => onChange("package", v)}
             />
@@ -192,9 +273,9 @@ export function LeadFormInputs({
 
             {/* Residency */}
             <Residence
-                location={form.location}
-                estateName={form.estateName}
-                apartmentName={form.apartmentName}
+                location={form.location ?? ""}
+                estateName={form.estateName ?? ""}
+                apartmentName={form.apartmentName ?? ""}
                 residenceType={residenceType}
                 onChange={onChange}
                 onSelect={onSelectResidence}
@@ -206,19 +287,11 @@ export function LeadFormInputs({
 export default LeadFormInputs;
 
 const styles = StyleSheet.create({
-    inputsWrapper: {
-        borderRadius: 15,
-        borderWidth: 1,
-        borderColor: "#E2E8F0",
-        padding: 20, 
-        paddingTop: 20, 
-        backgroundColor: "white",
-        // minHeight: "100%" 
-    },
     inputBox: {
-        marginBottom: 16,
-        paddingTop: 3,
-        marginTop: 3,
+        marginBottom: 3,
+        paddingTop: 8,
+        marginTop: 8,
+        paddingBottom: 2
     },
 
     label: {
@@ -229,9 +302,9 @@ const styles = StyleSheet.create({
     },
 
     input: {
-        height: 35,
+        height: 50,
         borderBottomWidth: 1,
-        borderBottomColor: "gray",
+        borderBottomColor:"#E2E8F0",
         paddingHorizontal: 5,
         color: "#0F172A",
         fontSize: 15,
@@ -240,7 +313,6 @@ const styles = StyleSheet.create({
 
     inputFocused: {
         outlineWidth: 0,
-        outlineStyle: "none",
         borderWidth: 0,
         borderColor: "transparent",
         borderBottomColor: "black",
@@ -251,12 +323,12 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         borderBottomWidth: 1,
-        borderBottomColor: "gray",
+        borderBottomColor: "#E2E8F0",
     },
 
     dateInput: {
         flex: 1,
-        height: 35,
+        height: 50,
         paddingHorizontal: 5,
         color: "#0F172A",
         fontSize: 15,
@@ -272,5 +344,16 @@ const styles = StyleSheet.create({
     calendarIcon: {
         fontSize: 22,
         color: "#64748B",
+    },
+    timeButton: {
+        minWidth: 58,
+        height: 35,
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 6,
+    },
+    timeText: {
+        color: "#0F172A",
+        fontSize: 14,
     },
 });

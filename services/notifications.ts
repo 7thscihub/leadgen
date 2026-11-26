@@ -22,29 +22,46 @@ function idFor(leadId: string, date:Date) {
 }
 
 
-function getTargetDates(dateToCall: string) {
-    const [year, month, day] = dateToCall.split("-").map(Number);
+function getTargetDates(dateToCall: string): Date[] {
     const oneHour = 60 * 60 * 1000;
     const now = new Date();
 
+    const dateTimeMatch = dateToCall.match(
+        /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/
+    );
+    if (dateTimeMatch) {
+        const [, year, month, day, hour, minute] = dateTimeMatch;
+        const target = new Date(
+            Number(year),
+            Number(month) - 1,
+            Number(day),
+            Number(hour),
+            Number(minute)
+        );
+        return [target.getTime() >= now.getTime() ? target : new Date(now.getTime() + oneHour)];
+    }
+
+    const [year, month, day] = dateToCall.split("-").map(Number);
     const target1 = new Date(year, month - 1, day, 9, 0, 0, 0);
     const target2 = new Date(year, month - 1, day, 16, 0, 0, 0);
     const target3 = new Date(year, month - 1, day, 20, 0, 0, 0);
 
-    const targetDates = [target, target2, target3].filter(target=> target.getTime() >= now.getTime())
+    let targetDates = [target1, target2, target3].filter(targetDate => targetDate.getTime() >= now.getTime());
     if (!targetDates.length) { 
-        targetDates = [now.getTime() + oneHour]
+        targetDates = [new Date(now.getTime() + oneHour)];
     }
     return targetDates;
 }
 
 
 export async function scheduleLeadReminders(lead: Lead) {
+    if (Platform.OS === "web") return;
     await configureNotifications();
-    const dates = getTargetDates(lead.dateToCall);
-    await cancelLeadReminders(lead.id, dates);
+    await cancelLeadReminders(lead.id);
 
     if (lead.status !== "pending") return;
+
+    const dates = getTargetDates(lead.dateToCall);
 
     await Promise.all(dates.map((date)=> Notifications.scheduleNotificationAsync({
         identifier: idFor(lead.id, date),
@@ -67,11 +84,24 @@ export async function scheduleLeadReminders(lead: Lead) {
 }
 
 
-export async function cancelLeadReminders(leadId: string, dates:Date[]) {
-    if (Platform.OS == 'web') return 
-    await Promise.all(dates.map(
-        date => Notifications.cancelScheduledNotificationAsync(idFor(leadId, date))
-    ))
+export async function cancelLeadReminders(leadId: string, dates?: Date[]) {
+    if (Platform.OS === 'web') return;
+    try {
+        if (dates && dates.length > 0) {
+            await Promise.all(
+                dates.map(date => Notifications.cancelScheduledNotificationAsync(idFor(leadId, date)).catch(() => {}))
+            );
+        } else {
+            const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+            const prefix = `lead-reminder-${leadId}`;
+            const toCancel = scheduled.filter(n => n.identifier.startsWith(prefix));
+            await Promise.all(
+                toCancel.map(n => Notifications.cancelScheduledNotificationAsync(n.identifier).catch(() => {}))
+            );
+        }
+    } catch (err) {
+        console.warn("Failed to cancel reminders for lead:", leadId, err);
+    }
 }
 
 

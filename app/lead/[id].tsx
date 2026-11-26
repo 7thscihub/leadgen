@@ -181,11 +181,11 @@ const styles = StyleSheet.create({
         color: "#4F46E5" 
     },
     title: { 
-        fontSize: 20, 
-        fontWeight: "800", 
+        fontSize: 15, 
+        fontWeight: "500", 
         color: "#0F172A", 
         marginTop: 0,
-        textTransform: "capitalize"
+        textTransform: "uppercase"
     },
     phone: { 
         color: "#64748B", 

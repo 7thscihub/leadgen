@@ -14,11 +14,11 @@ export default function AddLead() {
         try {
             setSaving(true);
             await createLead(data);
-            // router.navigate('/');
         } catch (e) {
             Alert.alert(
                 "Could not save", e instanceof Error ? e.message : "Try again."
             );
+            throw e;
         } finally {
             setSaving(false);
         }

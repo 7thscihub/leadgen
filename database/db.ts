@@ -1,12 +1,22 @@
 import * as SQLite from "expo-sqlite";
+import { Platform } from "react-native";
 
-let database: SQLite.SQLiteDatabase | null = null;
+let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
-export async function db() {
-  if (database) return database;
-  database = await SQLite.openDatabaseAsync("leadgen.db");
-  await database.execAsync(`
-    PRAGMA journal_mode = WAL;
+export function db() {
+  if (!databasePromise) {
+    databasePromise = initializeDatabase().catch((error: unknown) => {
+      databasePromise = null;
+      throw error;
+    });
+  }
+  return databasePromise;
+}
+
+async function initializeDatabase() {
+  const connection = await SQLite.openDatabaseAsync("leadgen.db");
+  await connection.execAsync(`
+    PRAGMA journal_mode = ${Platform.OS === "web" ? "DELETE" : "WAL"};
     CREATE TABLE IF NOT EXISTS leads (
       id TEXT PRIMARY KEY NOT NULL,
       idNumber TEXT UNIQUE,
@@ -27,6 +37,6 @@ export async function db() {
       receivedAt TEXT NOT NULL
     );
   `);
-  return database;
+  return connection;
 }
 

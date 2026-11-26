@@ -43,12 +43,42 @@ export async function selectLeads(status: LeadStatus, query = "") {
         `SELECT * FROM leads
         WHERE status = ? AND (name LIKE ? OR phoneNumber LIKE ?)
         ORDER BY
-        CASE WHEN dateToCall < date('now','+3 hours') THEN 0
-                WHEN dateToCall = date('now','+3 hours') THEN 1 ELSE 2 END,
-        CASE WHEN dateToCall < date('now','+3 hours') THEN dateToCall END ASC,
-        CASE WHEN dateToCall > date('now','+3 hours') THEN dateToCall END ASC`,
+        CASE WHEN substr(dateToCall, 1, 10) < date('now','+3 hours') THEN 0
+                WHEN substr(dateToCall, 1, 10) = date('now','+3 hours') THEN 1 ELSE 2 END,
+        CASE WHEN substr(dateToCall, 1, 10) < date('now','+3 hours') THEN dateToCall END ASC,
+        CASE WHEN substr(dateToCall, 1, 10) > date('now','+3 hours') THEN dateToCall END ASC`,
         status, q, q
     );
+}
+
+export async function selectLeadCounts(query = ""): Promise<Record<LeadStatus, number> & { total: number }> {
+    const database = await db();
+    const q = `%${query.trim()}%`;
+    const rows = query.trim()
+        ? await database.getAllAsync<{ status: LeadStatus; count: number }>(
+            `SELECT status, COUNT(*) as count FROM leads WHERE (name LIKE ? OR phoneNumber LIKE ?) GROUP BY status`,
+            q, q
+        )
+        : await database.getAllAsync<{ status: LeadStatus; count: number }>(
+            `SELECT status, COUNT(*) as count FROM leads GROUP BY status`
+        );
+
+    const counts: Record<LeadStatus, number> & { total: number } = {
+        pending: 0,
+        sold: 0,
+        reversed: 0,
+        abandoned: 0,
+        total: 0,
+    };
+
+    for (const row of rows) {
+        if (row.status in counts) {
+            counts[row.status] = row.count;
+            counts.total += row.count;
+        }
+    }
+
+    return counts;
 }
 
 export async function updateLeadRow(id: string, lead: Partial<Lead>) {
